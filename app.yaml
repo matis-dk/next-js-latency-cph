@@ -1,0 +1,19 @@
+runtime: nodejs22
+
+instance_class: F4
+
+env_variables:
+  BUCKET_NAME: "example-gcs-bucket"
+
+automatic_scaling:
+  min_idle_instances: 0
+  max_idle_instances: 2
+
+handlers:
+  - url: /stylesheets
+    static_dir: stylesheets
+
+  - url: /.*
+    secure: always
+    redirect_http_response_code: 301
+    script: auto

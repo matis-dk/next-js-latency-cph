@@ -13,10 +13,8 @@ export async function middleware(request: NextRequest) {
 
   const middleware_end = new Date().toISOString();
 
-  response.headers.set(
-    "X-Middleware-latencies",
-    JSON.stringify({ middleware_start, middleware_end })
-  );
+  response.cookies.set("middleware_start", middleware_start);
+  response.cookies.set("middleware_end", middleware_end);
 
   return response;
 }

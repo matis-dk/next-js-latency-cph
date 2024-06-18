@@ -12,6 +12,7 @@ export async function getMeasurement() {
   return {
     server_start,
     server_end,
+    server_region: headers().get("X-Vercel-Id")?.split("::").at(0) || "unknown",
     _rawHeaders: Object.fromEntries(headers()),
   };
 }

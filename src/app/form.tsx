@@ -11,37 +11,42 @@ export function Form() {
     console.log("making measurement");
     const client_start = new Date().toISOString();
 
-    const result = await getMeasurement();
+    await getMeasurement().then((result) => {
+      const client_end = new Date().toISOString();
 
-    const client_end = new Date().toISOString();
+      const l: Latency = {
+        client_start,
+        client_end,
+        server_start: result.server_start,
+        server_end: result.server_end,
+        middleware_start: decodeURIComponent(
+          getClientSideCookie("middleware_start")!
+        ),
+        middleware_end: decodeURIComponent(
+          getClientSideCookie("middleware_end")!
+        ),
+      };
 
-    const l: Latency = {
-      client_start,
-      client_end,
-      server_start: result.server_start,
-      server_end: result.server_end,
-      middleware_start: decodeURIComponent(
-        getClientSideCookie("middleware_start")!
-      ),
-      middleware_end: decodeURIComponent(
-        getClientSideCookie("middleware_end")!
-      ),
-    };
+      const serverRegion = result.server_region;
+      const middlewareRegion = decodeURIComponent(
+        getClientSideCookie("middleware_region")!
+      );
 
-    console.log("result ====> ", result);
+      setLatency([
+        `${diff(l.client_start, l.middleware_start)} client to middlware`,
+        `${diff(
+          l.middleware_start,
+          l.middleware_end
+        )} middleware [${middlewareRegion}]`, // 100ms delay for our application logic
+        `${diff(l.middleware_end, l.server_start)} middleware to server`,
+        `${diff(l.server_start, l.server_end)} server [${serverRegion}]`, // 100ms delay for our application logic
+        `${diff(l.server_end, l.client_end)} server to client`,
+      ]);
 
-    const getDateDiff = (t1: IsoString, t2: IsoString) =>
-      `${new Date(t2).getTime() - new Date(t1).getTime()}ms `;
+      setE2E(diff(l.client_start, l.client_end));
 
-    setLatency([
-      `${getDateDiff(l.client_start, l.middleware_start)} client to middlware`,
-      `${getDateDiff(l.middleware_start, l.middleware_end)} middleware`, // 100ms delay for our application logic
-      `${getDateDiff(l.middleware_end, l.server_start)} middleware to server`,
-      `${getDateDiff(l.server_start, l.server_end)} server`, // 100ms delay for our application logic
-      `${getDateDiff(l.server_end, l.client_end)} server to client`,
-    ]);
-
-    setE2E(getDateDiff(l.client_start, l.client_end));
+      console.log("latency timestamps ====> ", l);
+    });
   };
   return (
     <div className="flex flex-col gap-2">
@@ -62,3 +67,6 @@ export const getClientSideCookie = (name: string): string | undefined => {
 
   return cookieValue;
 };
+
+const diff = (t1: IsoString, t2: IsoString) =>
+  `${new Date(t2).getTime() - new Date(t1).getTime()}ms `;

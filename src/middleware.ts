@@ -1,6 +1,10 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, NextMiddleware } from "next/server";
 
+const region = process.env.VERCEL_REGION;
 export async function middleware(request: NextRequest) {
+  console.log("AWS_REGION ====> ", process.env.AWS_REGION);
+  console.log("AWS_DEFAULT_REGION ====> ", process.env.AWS_DEFAULT_REGION);
+  console.log("VERCEL_REGION ====> ", process.env.VERCEL_REGION);
   const middleware_start = new Date().toISOString();
   let response = NextResponse.next({
     request: {
@@ -15,6 +19,7 @@ export async function middleware(request: NextRequest) {
 
   response.cookies.set("middleware_start", middleware_start);
   response.cookies.set("middleware_end", middleware_end);
+  response.cookies.set("middleware_region", region ?? "unknown");
 
   return response;
 }
